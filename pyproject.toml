@@ -1,0 +1,145 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crewai-acgs"
+version = "0.1.0"
+description = "ACGS rule-based tool-call governance for CrewAI, as native tool call hooks"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Martin Lyu" }]
+keywords = ["crewai", "agents", "ai", "hooks", "tool-calls", "governance", "guardrails", "acgs"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "crewai>=1.15.3,<2",
+    "acgs-lite>=3.0.1,<4",
+    "typing-extensions>=4.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/acgs-ai/crewai-acgs"
+Documentation = "https://github.com/acgs-ai/crewai-acgs#readme"
+Repository = "https://github.com/acgs-ai/crewai-acgs"
+Issues = "https://github.com/acgs-ai/crewai-acgs/issues"
+Changelog = "https://github.com/acgs-ai/crewai-acgs/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<10.0.0",
+    "pytest-cov>=6.0.0,<8.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+]
+lint = ["ruff>=0.15.0,<0.16.0"]
+typing = ["mypy>=1.18.0,<2.0.0"]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    { include-group = "typing" },
+    "commitizen>=4.0.0,<5.0.0",
+    "pre-commit>=4.0.0,<5.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crewai_acgs"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+
+# Hatch environments install the same dependency groups as `uv sync` (uv.lock pins them for CI).
+[tool.hatch.envs.default]
+installer = "uv"
+dependency-groups = ["test", "lint", "typing"]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args}"
+cov = "pytest --cov --cov-report=term-missing {args}"
+lint = ["ruff check src tests examples", "ruff format --check src tests examples"]
+format = ["ruff check --fix --exit-zero src tests examples", "ruff format src tests examples"]
+fmt = ["format"]
+typecheck = "mypy"
+prepare = ["format", "lint", "typecheck", "cov"]
+
+# The oldest supported versions of crewai and acgs-lite. CI resolves the same set with
+# `uv pip install --resolution lowest-direct`.
+[tool.hatch.envs.min]
+template = "default"
+python = "3.10"
+extra-dependencies = ["crewai==1.15.3", "acgs-lite==3.0.1"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+include = ["src/**/*.py", "tests/**/*.py", "examples/**/*.py"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "A", "ANN", "ARG", "B", "BLE", "C4", "D", "E", "EM", "F", "FA", "FBT", "I", "N", "PERF", "PGH", "PIE", "PL",
+    "PT", "PYI", "RET", "RSE", "RUF", "S", "SIM", "SLF", "T10", "T20", "TC", "TID", "UP", "W",
+]
+ignore = [
+    "TC001", "TC002", "TC003",  # runtime imports keep the public API introspectable
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+# Shared verbatim with acgs-haystack, strands-acgs and langchain-acgs, which use Sphinx-style docstrings here.
+"src/crewai_acgs/_governance.py" = ["D212", "D205", "D415", "RUF100", "BLE001", "ANN401"]
+# Fail-closed handlers catch every exception on purpose (CrewAI ignores non-HookAborted errors from hooks).
+"src/crewai_acgs/hooks.py" = ["BLE001", "ANN401"]
+"tests/**/*.py" = ["D", "S101", "PLR2004", "ANN401", "ARG", "SLF001", "FBT", "PLC0415", "EM101", "N802"]
+"examples/**/*.py" = ["T201", "D", "ARG", "ANN401", "PLR2004"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src", "tests", "examples"]
+
+# Recent numpy stubs (a transitive dependency of crewai) use Python 3.12 syntax that mypy rejects when checking
+# for Python 3.10. Nothing here uses numpy, so mypy does not read it.
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src"]
+addopts = "--strict-markers --strict-config --doctest-modules --import-mode=importlib --disable-socket --allow-unix-socket"
+filterwarnings = ["error", "ignore::ImportWarning", "ignore::DeprecationWarning", "ignore::PendingDeprecationWarning"]
+
+[tool.coverage.run]
+source = ["crewai_acgs"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+update_changelog_on_bump = true
+major_version_zero = true
