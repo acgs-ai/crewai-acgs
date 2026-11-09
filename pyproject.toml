@@ -26,7 +26,7 @@ classifiers = [
 ]
 dependencies = [
     "crewai>=1.15.3,<2",
-    "acgs-lite>=3.0.1,<4",
+    "acgs-lite>=3.0.1,<5",
     "typing-extensions>=4.7.0",
 ]
 
