@@ -4,7 +4,18 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/). Entries for new releases are generated with `cz bump`.
 
-## [Unreleased]
+## 0.2.0 (2026-11-15)
+
+### Added
+
+- Offline `examples/deny_and_audit.py`: one allowed and one denied CrewAI tool call, with an application audit trail.
+- Regression coverage for JSON-native arguments and bytes/bytearray formatting against acgs-lite 4.0.0.
+
+### Changed
+
+- Test dependencies now pin acgs-lite 4.0.0. Runtime support remains `acgs-lite>=3.0.1,<5` and default
+  compatibility behavior is unchanged.
+- Document the compatibility matrix and acgs-lite 4.x production signing and JSON-only payload requirements.
 
 ## 0.1.0 (2026-10-20)
 
