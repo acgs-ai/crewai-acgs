@@ -4,7 +4,9 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/). Entries for new releases are generated with `cz bump`.
 
-## 0.2.0 (2026-11-15)
+## [Unreleased]
+
+## 0.2.0 (unreleased)
 
 ### Added
 
@@ -13,8 +15,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
-- Test dependencies now pin acgs-lite 4.0.0. Runtime support remains `acgs-lite>=3.0.1,<5` and default
-  compatibility behavior is unchanged.
+- The locked test environment resolves acgs-lite 4.0.0; the CI `test-min` job keeps testing the 3.0.1 floor.
+  Runtime support remains `acgs-lite>=3.0.1,<5` and default compatibility behavior is unchanged.
 - Document the compatibility matrix and acgs-lite 4.x production signing and JSON-only payload requirements.
 
 ## 0.1.0 (2026-10-20)
