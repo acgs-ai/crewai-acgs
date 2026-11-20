@@ -27,11 +27,38 @@ pip install crewai-acgs
 Requires Python 3.10 to 3.13, `crewai>=1.15.3` (the first release with `HookAborted` and the `@on` hook API) and
 `acgs-lite>=3.0.1,<5`.
 
-acgs-lite 4 is a major release. Its production profile of `GovernedCallable` requires an Ed25519
-receipt signer, governed payloads are JSON-only, and `GovernedAgent` no longer passes per-call keyword arguments to
-rule conditions (see the [acgs-lite changelog](https://github.com/acgs-ai/acgs-lite/blob/main/CHANGELOG.md)). This
-adapter works with both majors, but a fresh environment installs the newest version allowed. To stay on 3.x, also
-require `"acgs-lite<4"`, for example `pip install crewai-acgs "acgs-lite<4"`.
+### Compatibility
+
+| Component | Supported range | 0.2.0 validation |
+|---|---|---|
+| acgs-lite | `>=3.0.1,<5` | 4.0.0 tested via `uv.lock`; 3.0.1 floor tested by the CI `test-min` job |
+| CrewAI | `>=1.15.3,<2` | ReAct and native tool calling, including parallel calls |
+| Python | `>=3.10,<3.14` | Strict typing targets Python 3.10 |
+
+Default behavior stays compatible: this adapter formats arguments as text and calls `GovernanceEngine.validate`.
+It does not select the production authorization profile or issue signed execution receipts.
+
+When using acgs-lite 4.x `GovernedCallable` separately in production, provide a non-ephemeral Ed25519 receipt
+signer and pin its public key in `trusted_execution_keys`. Its governed inputs and outputs (and those of
+`GovernedAgent`) must be JSON-native: string-keyed objects, arrays, strings, finite numbers, booleans and null.
+Convert bytes/bytearray and custom Python objects before passing them to those APIs. The adapter's text formatter
+still renders bytes/bytearray as scalar values for rule matching. `GovernedAgent` also no longer passes per-call
+keyword arguments to rule conditions.
+
+A fresh environment installs the newest version allowed. To stay on 3.x, also require `"acgs-lite<4"`, for example
+`pip install crewai-acgs "acgs-lite<4"`.
+
+### Offline deny-and-audit example
+
+Run [examples/deny_and_audit.py](examples/deny_and_audit.py) without an API key:
+
+```bash
+uv run --no-sync python examples/deny_and_audit.py
+```
+
+A scripted model requests one allowed note and one denied note. Only the allowed tool executes, then the example
+prints an application audit trail of both governance decisions (tool, verdict, reason and rule IDs). The trail
+omits argument values and is kept in memory; it is not a signed receipt or a durable engine audit log.
 
 ## Usage
 
